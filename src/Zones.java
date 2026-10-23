@@ -18,10 +18,92 @@ public class Zones {
      * slides (slidesInto) and give every cell it reaches the next zone number.
      * Is DAG in Main is 1 when the number of zones equals the number of cells (no cycle), so you do not need a separate check.
      */
+
     public static int[] kosaraju(Input.Slides s) {
-        // TODO
-        return new int[s.n()];
+
+        int n = s.n();
+
+        // Original directed graph
+        int[][] outgoing = Graphs.slidesFrom(s);
+
+        boolean[] seen = new boolean[n];
+
+        int[] stack = new int[n];
+        int[] nextEdge = new int[n];
+        int[] finished = new int[n];
+
+        int finishCount = 0;
+
+        // FIRST DFS PASS
+        for (int start = 0; start < n; start++) {
+
+            if (seen[start]) continue;
+
+            int top = 0;
+            stack[top] = start;
+            nextEdge[top] = 0;
+            seen[start] = true;
+
+            while (top >= 0) {
+
+                int u = stack[top];
+
+                if (nextEdge[top] == outgoing[u].length) {
+                    finished[finishCount++] = u;
+                    top--;
+                } else {
+
+                    int edge = outgoing[u][nextEdge[top]++];
+                    int v = s.to()[edge];
+
+                    if (!seen[v]) {
+                        seen[v] = true;
+                        stack[++top] = v;
+                        nextEdge[top] = 0;
+                    }
+                }
+            }
+        }
+
+        // SECOND DFS PASS ON REVERSED GRAPH
+        int[][] incoming = Graphs.slidesInto(s);
+
+        int[] zoneOf = new int[n];
+        java.util.Arrays.fill(zoneOf, -1);
+
+        int zones = 0;
+
+        for (int i = finishCount - 1; i >= 0; i--) {
+
+            int start = finished[i];
+
+            if (zoneOf[start] != -1) continue;
+
+            int size = 0;
+            stack[size++] = start;
+            zoneOf[start] = zones;
+
+            while (size > 0) {
+
+                int u = stack[--size];
+
+                for (int edge : incoming[u]) {
+
+                    int v = s.from()[edge];
+
+                    if (zoneOf[v] == -1) {
+                        zoneOf[v] = zones;
+                        stack[size++] = v;
+                    }
+                }
+            }
+
+            zones++;
+        }
+
+        return zoneOf;
     }
+
 
     /**
      * Mission 5. The graph of zones: the edge X to Y costs the cheapest slide from X to Y, walking inside a zone is free.
@@ -29,8 +111,8 @@ public class Zones {
      * [0] flow stages: the number of zones on the longest chain of zones;
      * [1] the cost of the cheapest route from the zone of cell 0 to the zone of the last cell.
      */
+
     public static long[] routes(Input.Slides s, int[] zoneOf, int zoneCount) {
-        // TODO
         return new long[]{0, 0};
     }
 }
