@@ -113,6 +113,63 @@ public class Zones {
      */
 
     public static long[] routes(Input.Slides s, int[] zoneOf, int zoneCount) {
-        return new long[]{0, 0};
+
+        if (zoneCount == 0) {
+            return new long[]{0, 0};
+        }
+
+        java.util.List<java.util.Map<Integer, Integer>> edges =
+                new java.util.ArrayList<>();
+
+        for (int z = 0; z < zoneCount; z++) {
+            edges.add(new java.util.HashMap<>());
+        }
+
+        for (int i = 0; i < s.count(); i++) {
+            int from = zoneOf[s.from()[i]];
+            int to = zoneOf[s.to()[i]];
+
+            if (from != to) {
+                edges.get(from).merge(to, s.time()[i], Math::min);
+            }
+        }
+
+        int[] stages = new int[zoneCount];
+        java.util.Arrays.fill(stages, 1);
+
+        long[] distance = new long[zoneCount];
+        java.util.Arrays.fill(distance, Long.MAX_VALUE);
+
+        distance[zoneOf[0]] = 0;
+
+        int longest = 1;
+
+        for (int z = 0; z < zoneCount; z++) {
+
+            longest = Math.max(longest, stages[z]);
+
+            for (var edge : edges.get(z).entrySet()) {
+
+                int next = edge.getKey();
+
+                stages[next] = Math.max(
+                        stages[next],
+                        stages[z] + 1
+                );
+
+                if (distance[z] != Long.MAX_VALUE) {
+                    distance[next] = Math.min(
+                            distance[next],
+                            distance[z] + edge.getValue()
+                    );
+                }
+            }
+        }
+
+        return new long[]{
+                longest,
+                distance[zoneOf[s.n() - 1]]
+        };
     }
+
 }
